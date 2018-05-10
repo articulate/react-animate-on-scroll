@@ -1,5 +1,3 @@
-[![Travis](https://travis-ci.org/dbramwell/react-animate-on-scroll.svg?branch=master)](https://travis-ci.org/dbramwell/react-animate-on-scroll)
-
 # React Animate On Scroll
 React component to animate elements on scroll with [animate.css](https://daneden.github.io/animate.css/).
 Inspired by [React-Scroll-Effect](https://github.com/anorudes/react-scroll-effects)
