@@ -1,6 +1,7 @@
-[![Travis](https://travis-ci.org/dbramwell/react-animate-on-scroll.svg?branch=master)](https://travis-ci.org/dbramwell/react-animate-on-scroll)
+# Articulate - React Animate On Scroll
+**NOTE: This is a fork of the original [react-animate-on-scroll](https://github.com/dbramwell/react-animate-on-scroll) by dbramwell and has been modified to meet articulate's needs.**
 
-# React Animate On Scroll
+
 React component to animate elements on scroll with [animate.css](https://daneden.github.io/animate.css/).
 Inspired by [React-Scroll-Effect](https://github.com/anorudes/react-scroll-effects)
 
@@ -9,7 +10,7 @@ Inspired by [React-Scroll-Effect](https://github.com/anorudes/react-scroll-effec
 ## Install:
 
 ```
-npm install react-animate-on-scroll --save
+npm install articulate-react-animate-on-scroll --save
 ```
 **If you want to use the animations from animate.css, be sure to include animate.css in someway in your project**
 This can be done in a number of ways, eg:

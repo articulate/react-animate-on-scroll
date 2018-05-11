@@ -193,13 +193,38 @@ export default class ScrollAnimation extends Component {
     }
   }
 
-  render() {
-    var classes = this.props.className ? `${this.props.className} ${this.state.classes}` : this.state.classes;
+  renderChild(child, classes, style, key = 0) {
     return (
-      <div ref={(node) => { this.node = node; }} className={classes} style={Object.assign({}, this.state.style, this.props.style)}>
-        {this.props.children}
+      <div className={classes} style={style} key={key}>
+        {child}
       </div>
     );
+  }
+
+  renderChildren(classes, style) {
+    const { children, duration, siblingDelay } = this.props;
+
+    if (siblingDelay && Array.isArray(children)) {
+      return [...Array(children.length).keys()].map((siblingIndex) => {
+        const siblingStyle = Object.assign({}, style, { animationDuration: (duration + siblingDelay * siblingIndex) + 's'})
+
+        return this.renderChild(children[siblingIndex], classes, siblingStyle, siblingIndex)
+      })
+    } else {
+      return this.renderChild(children, classes, style);
+    }
+
+  }
+
+  render() {
+    const classes = this.props.className ? `${this.props.className} ${this.state.classes}` : this.state.classes;
+    const style = Object.assign({}, this.state.style, this.props.style);
+
+    return (
+      <div ref={(node) => { this.node = node; }}>
+        {this.renderChildren(classes, style)}
+      </div>
+    )
   }
 }
 
@@ -208,7 +233,8 @@ ScrollAnimation.defaultProps = {
   duration: 1,
   initiallyVisible: false,
   delay: 0,
-  animateOnce: false
+  animateOnce: false,
+  siblingDelay: 0
 };
 
 ScrollAnimation.propTypes = {
@@ -221,5 +247,6 @@ ScrollAnimation.propTypes = {
   animateOnce: PropTypes.bool,
   style: PropTypes.object,
   scrollableParentSelector: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  siblingDelay: PropTypes.number
 };
