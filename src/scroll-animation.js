@@ -290,9 +290,9 @@ class AnimatedElement extends Component {
   render() {
     const { children, classes } = this.props
     const { hasAnimated } = this.state
-    const propStyles = this.props.style
+    const { styles: propStyles } = this.props
     const opacity = propStyles.animationDelay !== undefined ? 0 : propStyles.opacity
-    const style = Object.assign({}, this.props.style, { opacity: hasAnimated ? 1 : opacity })
+    const style = Object.assign({}, propStyles, { opacity: hasAnimated ? 1 : opacity })
 
     return (
       <div className={classes} style={style} ref={ref => this.ref = ref}>
