@@ -4,6 +4,7 @@
   "description": "React component to animate elements on scroll with animate.css",
   "main": "dist/scrollAnimation.min.js",
   "scripts": {
+    "build": "gulp build",
     "test": "karma start"
   },
   "repository": {
