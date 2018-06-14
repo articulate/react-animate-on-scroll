@@ -85,8 +85,12 @@ export default class ScrollAnimation extends Component {
   getVisibility() {
     const elementTop = this.getElementTop(this.node) - this.getElementTop(this.scrollableParent);
     const elementBottom = elementTop + this.node.clientHeight;
+    const inViewport = this.inViewport(elementTop, elementBottom)
+
     return {
-      inViewport: this.inViewport(elementTop, elementBottom),
+      inViewport: inViewport,
+      aboveViewport: this.isAboveViewport(elementTop),
+      belowViewport: this.isBelowViewport(elementTop),
       onScreen: this.onScreen(elementTop, elementBottom)
     };
   }
@@ -170,12 +174,46 @@ export default class ScrollAnimation extends Component {
     });
   }
 
+  shouldNotAnimate(currentVis) {
+    if (this.props.animateIn && this.props.animateOut) {
+      return !currentVis.onScreen
+    } else if (this.props.animateIn) {
+      return !currentVis.onScreen && !currentVis.aboveViewport
+    } else {
+      return !currentVis.onScreen && !currentVis.belowViewport
+    }
+  }
+
+  shouldAnimateIn(currentVis) {
+    if (this.props.animateIn) {
+      if (!this.props.animateOut) {
+        return currentVis.inViewport || currentVis.aboveViewport
+      } else {
+        return currentVis.inViewport
+      }
+    }
+
+    return false
+  }
+
+  shouldAnimateOut(currentVis) {
+    if (this.props.animateOut && currentVis.onScreen && this.state.style.opacity === 1) {
+      if (!this.props.animateIn) {
+        return currentVis.inViewport || currentVis.belowViewport
+      } else {
+        return currentVis.inViewport
+      }
+    }
+
+    return false
+  }
+
   handleScroll() {
     if (!this.animating) {
       const currentVis = this.getVisibility();
       if (this.visibilityHasChanged(this.visibility, currentVis)) {
         clearTimeout(this.delayedAnimationTimeout);
-        if (!currentVis.onScreen) {
+        if (this.shouldNotAnimate(currentVis)) {
           this.setState({
             classes: "animated",
             style: {
@@ -183,9 +221,9 @@ export default class ScrollAnimation extends Component {
               opacity: this.props.initiallyVisible ? 1 : 0
             }
           });
-        } else if (currentVis.inViewport && this.props.animateIn) {
+        } else if (this.shouldAnimateIn(currentVis)) {
           this.animateIn(this.props.afterAnimatedIn);
-        } else if (currentVis.onScreen && this.visibility.inViewport && this.props.animateOut && this.state.style.opacity === 1) {
+        } else if (this.shouldAnimateOut(currentVis)) {
           this.animateOut(this.props.afterAnimatedOut);
         }
         this.visibility = currentVis;
