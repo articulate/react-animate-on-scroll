@@ -232,13 +232,14 @@ export default class ScrollAnimation extends Component {
   }
 
   renderChild(child, classes, index = 0) {
-    const { siblingDelay } = this.props
+    const { initiallyVisible, siblingDelay } = this.props
     const  delay = siblingDelay * index
     const style = Object.assign({}, this.state.style, this.props.style, { animationDelay: `${delay}s` })
 
     return (
       <AnimatedElement
         classes={classes}
+        initiallyVisible={initiallyVisible}
         style={style}
         key={index}
       >
@@ -326,10 +327,10 @@ class AnimatedElement extends Component {
   }
 
   render() {
-    const { children, classes } = this.props
+    const { initiallyVisible, children, classes } = this.props
     const { hasAnimated } = this.state
     const propStyles = this.props.style
-    const opacity = propStyles.animationDelay !== undefined ? 0 : propStyles.opacity
+    const opacity = (propStyles.animationDelay !== undefined && !initiallyVisible) ? 0 : propStyles.opacity
     const style = Object.assign({}, propStyles, { opacity: hasAnimated ? 1 : opacity })
 
     return (
