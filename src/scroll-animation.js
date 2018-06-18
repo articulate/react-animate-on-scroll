@@ -109,12 +109,18 @@ export default class ScrollAnimation extends Component {
   }
 
   componentWillUnmount() {
+    this.cleanup()
+  }
+
+  cleanup() {
     clearTimeout(this.delayedAnimationTimeout);
     clearTimeout(this.callbackTimeout);
+
     if (window && window.removeEventListener) {
-      window.removeEventListener("scroll", this.listener);
+      window.removeEventListener("scroll", this.listener)
     }
   }
+
 
   visibilityHasChanged(previousVis, currentVis) {
     return previousVis.inViewport !== currentVis.inViewport ||
@@ -210,6 +216,15 @@ export default class ScrollAnimation extends Component {
 
   handleScroll() {
     if (!this.animating) {
+
+        // Hack: There seems to be an issue with the way we are doing routing on the learn page, animations, and react component
+        // lifecycle events.  For whatever reason, if you navigate quickly from lesson to lesson on the lesson overview page,
+        // zombie event listeners are left hanging out observing scroll events.  This hack removes the zombie listeners when detected
+        if (!this.node) {
+          this.cleanup()
+          return true
+        }
+
       const currentVis = this.getVisibility();
       if (this.visibilityHasChanged(this.visibility, currentVis)) {
         clearTimeout(this.delayedAnimationTimeout);
@@ -307,15 +322,18 @@ class AnimatedElement extends Component {
 
   componentDidMount() {
     this.animationEndListener = this.ref.addEventListener('animationend', () => {
-
-      this.setState({
-        hasAnimated: true
-      })
+      if (this.ref) {
+        this.setState({
+          hasAnimated: true
+        })
+      }
     })
   }
 
   componentWillUnmount() {
-    this.ref.removeEventListener('animationend', this.animationEndListener)
+    if (this.ref) {
+      this.ref.removeEventListener('animationend', this.animationEndListener)
+    }
   }
 
   componentWillReceiveProps(nextProps) {
