@@ -138,6 +138,14 @@ export default class ScrollAnimation extends Component {
       || previousVis.onScreen !== currentVis.onScreen
   }
 
+  captureRef(ref) {
+    if (ref) {
+      this.node = ref.animateRef
+        ? ref.animateRef
+        : ref
+    }
+  }
+
   animate(animation, callback) {
     this.delayedAnimationTimeout = setTimeout(() => {
       this.animating = true
@@ -265,7 +273,7 @@ export default class ScrollAnimation extends Component {
   }
 
   renderChild(child, classes, index = 0) {
-    const { initiallyVisible, siblingDelay } = this.props
+    const { initiallyVisible, keepStructure, siblingDelay } = this.props
     const  delay = siblingDelay * index
 
     const style = Object.assign(
@@ -278,6 +286,7 @@ export default class ScrollAnimation extends Component {
       <AnimatedElement
         classes={classes}
         initiallyVisible={initiallyVisible}
+        keepStructure={keepStructure}
         key={index}
         style={style}
       >
@@ -286,16 +295,45 @@ export default class ScrollAnimation extends Component {
     )
   }
 
-  renderChildren(classes) {
+  renderChildren(classes, others) {
     const { children, siblingDelay } = this.props
 
-    if (siblingDelay && Array.isArray(children)) {
-      return [ ...Array(children.length).keys() ].map(
-        siblingIndex =>  this.renderChild(children[siblingIndex], classes, siblingIndex)
-      )
+    const elem = Array.isArray(others)
+      ? others
+      : children
+
+    if (siblingDelay && Array.isArray(elem)) {
+      return [ ...Array(elem.length).keys() ].map((siblingIndex) => {
+        return this.renderChild(elem[siblingIndex], classes, siblingIndex)
+      })
     } else {
-      return this.renderChild(children, classes)
+      return this.renderChild(elem, classes)
     }
+  }
+
+  renderWrapped(classes) {
+    return (
+      <div ref={el => { this.node = el } }>
+        {this.renderChildren(classes)}
+      </div>
+    )
+  }
+
+  renderStructure(classes) {
+    const { children } = this.props
+
+    if (React.Children.count(children) === 1) {
+      return React.Children.map(
+        children,
+        child => React.cloneElement(
+          child,
+          { ref: this.captureRef.bind(this) },
+          this.renderChildren(classes, child.props.children)
+        )
+      )
+    }
+
+    return this.renderWrapped(classes)
   }
 
   render() {
@@ -303,11 +341,11 @@ export default class ScrollAnimation extends Component {
       ? `${this.props.className} ${this.state.classes}`
       : this.state.classes
 
-    return (
-      <div ref={(node) => { this.node = node }}>
-        {this.renderChildren(classes)}
-      </div>
-    )
+    if (this.props.keepStructure) {
+      return this.renderStructure(classes)
+    }
+
+    return this.renderWrapped(classes)
   }
 }
 
@@ -315,6 +353,7 @@ ScrollAnimation.defaultProps = {
   animateOnce: false,
   delay: 0,
   duration: 1,
+  keepStructure: false,
   initiallyVisible: false,
   offset: 150,
   siblingDelay: 0,
@@ -328,6 +367,7 @@ ScrollAnimation.propTypes = {
   delay: PropTypes.number,
   duration: PropTypes.number,
   initiallyVisible: PropTypes.bool,
+  keepStructure: PropTypes.bool,
   offset: PropTypes.number,
   scrollableParentSelector: PropTypes.string,
   siblingDelay: PropTypes.number,
@@ -352,7 +392,7 @@ class AnimatedElement extends Component {
   }
 
   componentWillUnmount() {
-    if (this.ref) {
+    if (this.ref && this.ref.removeEventListener) {
       this.ref.removeEventListener('animationend', this.animationEndListener)
     }
   }
@@ -363,16 +403,47 @@ class AnimatedElement extends Component {
     }
   }
 
+  captureRef(ref) {
+    if (ref) {
+      this.ref = ref.animateRef
+        ? ref.animateRef
+        : ref
+    }
+  }
+
+  renderStructure({ style }) {
+    const { children, classes } = this.props
+
+    const elem = React.Children.map(
+      children,
+      child => React.cloneElement(
+        child,
+        { className: classes, style, ref: this.captureRef.bind(this) }
+      )
+    )
+
+    return elem
+  }
+
+  renderWrapped({ style }) {
+    const { children, classes } = this.props
+
+    return (
+      <div className={classes} style={style} ref={ref => this.ref = ref}>
+        {children}
+      </div>
+    )
+  }
+
   render() {
     const {
-      children,
-      classes,
       initiallyVisible,
+      keepStructure
     } = this.props
 
     const { hasAnimated } = this.state
-
     const propStyles = this.props.style
+
     const opacity = propStyles.animationDelay !== undefined && !initiallyVisible
       ? 0
       : propStyles.opacity
@@ -383,15 +454,20 @@ class AnimatedElement extends Component {
       { opacity: hasAnimated ? 1 : opacity }
     )
 
-    return (
-      <div className={classes} style={style} ref={ref => this.ref = ref}>
-        {children}
-      </div>
-    )
+    if (keepStructure) {
+      return this.renderStructure({ style })
+    }
+
+    return this.renderWrapped({ style })
   }
+}
+
+AnimatedElement.defaultProps = {
+  keepStructure: false,
 }
 
 AnimatedElement.propTypes = {
   classes: PropTypes.string,
+  keepStructure: PropTypes.bool,
   style: PropTypes.object,
 }
