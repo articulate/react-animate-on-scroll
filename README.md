@@ -105,6 +105,25 @@ function(visible) {
 }
 ```
 
+**keepStructure**
+
+This is a `Boolean` value that will not add additional structure to its children
+to facilitate animation when set to `true`. This comes in handy when keeping the
+structure required for proper semantic html.
+
+In order to properly animate while keeping the structure, a few requirements must
+be met:
+
+1. Elements to be animated must be wrapped in a single "root" element.
+1. When either the "root" OR any of the elements to be animated are React components, a ref to element to be animated must be provided on the component as `animateRef`.
+1. When either the "root" OR any of the elements to be animated are plain ol' DOM elements, no additional ref exposure is required.
+
+When `keepStructure` is set to `true`, the component will check if it only has
+one child, if it does it will not create the wrapping `div` and will instead
+use the root element as the container. If there is more than one child, then
+it will default to creating and inserting a  `div` that will wrap the provided
+children.
+
 ## Changes:
 ### Version 2.1.0
 * Can now use scrollableParentSelector to use ScrollAnimation within any scrolling parent element.

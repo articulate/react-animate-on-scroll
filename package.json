@@ -1,6 +1,6 @@
 {
   "name": "@articulate/react-animate-on-scroll",
-  "version": "2.2.5",
+  "version": "2.3.0",
   "description": "React component to animate elements on scroll with animate.css",
   "main": "dist/scrollAnimation.min.js",
   "scripts": {
